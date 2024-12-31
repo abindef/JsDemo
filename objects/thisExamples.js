@@ -82,9 +82,6 @@ class Animal {
 }
 
 const dog = new Animal('狗');
-speak();          // this 丢失，undefined
-boundSpeak();     // 正常工作，因为绑定了
-arrowSpeak();     // 正常工作，因为是箭头函数
 dog.speak();      // 正常工作
 console.log('测试解绑方法：');
 const { speak } = dog;  // 解构会失去 this 绑定
