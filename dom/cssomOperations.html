@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSSOM 操作示例</title>
+    <style id="mainStyle">
+        .box {
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        .highlight {
+            background-color: #e74c3c;
+            transform: scale(1.1);
+        }
+
+        #dynamicBox {
+            border: 2px solid black;
+        }
+
+        @media (max-width: 600px) {
+            .box {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+    <style id="dynamicStyles">
+        /* 这里将通过 JavaScript 动态添加样式 */
+    </style>
+</head>
+<body>
+    <h1>CSSOM 操作示例</h1>
+
+    <!-- 1. 样式表操作 -->
+    <div id="section1">
+        <h2>1. 样式表操作</h2>
+        <div class="box" id="box1"></div>
+        <button onclick="demonstrateStyleSheets()">操作样式表</button>
+        <button onclick="toggleStyleSheet()">切换样式表启用状态</button>
+    </div>
+
+    <!-- 2. CSS 规则操作 -->
+    <div id="section2">
+        <h2>2. CSS 规则操作</h2>
+        <div class="box" id="box2"></div>
+        <button onclick="addNewRule()">添加新规则</button>
+        <button onclick="modifyExistingRule()">修改现有规则</button>
+    </div>
+
+    <!-- 3. 计算样式 -->
+    <div id="section3">
+        <h2>3. 计算样式</h2>
+        <div class="box" id="box3"></div>
+        <div id="computedStyleInfo"></div>
+        <button onclick="showComputedStyles()">显示计算样式</button>
+    </div>
+
+    <!-- 4. 动态样式 -->
+    <div id="section4">
+        <h2>4. 动态样式</h2>
+        <div class="box" id="dynamicBox"></div>
+        <button onclick="animateWithCSSOM()">CSSOM 动画</button>
+    </div>
+
+    <!-- 5. 媒体查询 -->
+    <div id="section5">
+        <h2>5. 媒体查询</h2>
+        <div class="box" id="box5"></div>
+        <button onclick="handleMediaQueries()">检查媒体查询</button>
+    </div>
+
+    <script>
+        // 1. 样式表操作
+        function demonstrateStyleSheets() {
+            // 获取所有样式表
+            console.log('所有样式表:', document.styleSheets);
+
+            // 获取特定样式表
+            const mainStyleSheet = document.getElementById('mainStyle').sheet;
+            console.log('主样式表:', mainStyleSheet);
+
+            // 遍历样式表中的规则
+            for (let rule of mainStyleSheet.cssRules) {
+                console.log('规则类型:', rule.type);
+                console.log('规则文本:', rule.cssText);
+            }
+        }
+
+        function toggleStyleSheet() {
+            const mainStyleSheet = document.getElementById('mainStyle').sheet;
+            mainStyleSheet.disabled = !mainStyleSheet.disabled;
+        }
+
+        // 2. CSS 规则操作
+        function addNewRule() {
+            const dynamicStyles = document.getElementById('dynamicStyles').sheet;
+            
+            // 添加新规则
+            const newRuleIndex = dynamicStyles.insertRule(`
+                #box2 {
+                    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+                    border-radius: 10px;
+                }
+            `, dynamicStyles.cssRules.length);
+
+            console.log('新规则索引:', newRuleIndex);
+        }
+
+        function modifyExistingRule() {
+            const mainStyleSheet = document.getElementById('mainStyle').sheet;
+            
+            // 查找并修改现有规则
+            for (let i = 0; i < mainStyleSheet.cssRules.length; i++) {
+                const rule = mainStyleSheet.cssRules[i];
+                if (rule.selectorText === '.box') {
+                    rule.style.backgroundColor = '#2ecc71';
+                    break;
+                }
+            }
+        }
+
+        // 3. 计算样式
+        function showComputedStyles() {
+            const box3 = document.getElementById('box3');
+            const computedStyle = window.getComputedStyle(box3);
+            const info = document.getElementById('computedStyleInfo');
+            
+            info.innerHTML = `
+                <p>宽度: ${computedStyle.width}</p>
+                <p>高度: ${computedStyle.height}</p>
+                <p>背景色: ${computedStyle.backgroundColor}</p>
+                <p>边距: ${computedStyle.margin}</p>
+                <p>变换: ${computedStyle.transform}</p>
+            `;
+        }
+
+        // 4. 动态样式
+        function animateWithCSSOM() {
+            const dynamicBox = document.getElementById('dynamicBox');
+            let rotation = 0;
+            
+            // 使用 CSSOM 创建动画
+            const animate = () => {
+                rotation = (rotation + 2) % 360;
+                dynamicBox.style.transform = `rotate(${rotation}deg)`;
+                requestAnimationFrame(animate);
+            };
+            
+            animate();
+        }
+
+        // 5. 媒体查询
+        function handleMediaQueries() {
+            const mainStyleSheet = document.getElementById('mainStyle').sheet;
+            
+            // 遍历并找到媒体查询规则
+            for (let rule of mainStyleSheet.cssRules) {
+                if (rule instanceof CSSMediaRule) {
+                    console.log('媒体查询:', rule.conditionText);
+                    console.log('是否匹配:', window.matchMedia(rule.conditionText).matches);
+                    
+                    // 显示媒体查询中的规则
+                    for (let mediaRule of rule.cssRules) {
+                        console.log('媒体查询中的规则:', mediaRule.cssText);
+                    }
+                }
+            }
+        }
+
+        // 6. 监听样式变化
+        const box5 = document.getElementById('box5');
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                    console.log('样式变化:', box5.style.cssText);
+                }
+            });
+        });
+
+        observer.observe(box5, {
+            attributes: true,
+            attributeFilter: ['style']
+        });
+
+        // 7. 创建新的样式表
+        function createNewStyleSheet() {
+            const style = document.createElement('style');
+            document.head.appendChild(style);
+            
+            // 添加规则到新样式表
+            const sheet = style.sheet;
+            sheet.insertRule(`
+                .new-style {
+                    color: purple;
+                    font-size: 20px;
+                    font-weight: bold;
+                }
+            `, 0);
+            
+            return sheet;
+        }
+
+        // 8. 优先级和层叠
+        function demonstrateCascading() {
+            const box = document.getElementById('box1');
+            
+            // 内联样式（最高优先级）
+            box.style.setProperty('background-color', 'orange', 'important');
+            
+            // 通过 CSSOM 添加样式（较低优先级）
+            const dynamicStyles = document.getElementById('dynamicStyles').sheet;
+            dynamicStyles.insertRule(`
+                #box1 {
+                    background-color: purple;
+                }
+            `, 0);
+        }
+    </script>
+</body>
+</html>

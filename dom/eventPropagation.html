@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>事件捕获和冒泡示例</title>
+    <style>
+        .container {
+            padding: 20px;
+            margin: 20px;
+            border: 2px solid #333;
+            background-color: #f0f0f0;
+        }
+
+        .box {
+            padding: 20px;
+            margin: 10px;
+            border: 2px solid #666;
+            background-color: #fff;
+        }
+
+        .highlight {
+            background-color: #ffeb3b;
+            transition: background-color 0.3s;
+        }
+
+        .event-log {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .capture-phase {
+            color: #2196F3;
+        }
+
+        .target-phase {
+            color: #4CAF50;
+        }
+
+        .bubble-phase {
+            color: #F44336;
+        }
+
+        .controls {
+            margin: 20px;
+        }
+
+        .clear-log {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .phase-toggle {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>事件捕获和冒泡示例</h1>
+    
+    <div class="controls">
+        <label class="phase-toggle">
+            <input type="checkbox" id="useCapture" checked> 启用捕获阶段
+        </label>
+        <label class="phase-toggle">
+            <input type="checkbox" id="useBubble" checked> 启用冒泡阶段
+        </label>
+        <button class="clear-log" onclick="clearLog()">清除日志</button>
+    </div>
+
+    <!-- 事件传播容器 -->
+    <div id="grandparent" class="container">
+        祖父元素
+        <div id="parent" class="container">
+            父元素
+            <div id="child" class="box">
+                子元素
+                <button id="button">点击我</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 事件日志显示区域 -->
+    <div id="eventLog" class="event-log"></div>
+
+    <script>
+        // 获取所有需要的元素
+        const grandparent = document.getElementById('grandparent');
+        const parent = document.getElementById('parent');
+        const child = document.getElementById('child');
+        const button = document.getElementById('button');
+        const eventLog = document.getElementById('eventLog');
+        const useCaptureCheckbox = document.getElementById('useCapture');
+        const useBubbleCheckbox = document.getElementById('useBubble');
+
+        // 清除日志
+        function clearLog() {
+            eventLog.innerHTML = '';
+        }
+
+        // 记录事件
+        function logEvent(element, phase, event) {
+            const timestamp = new Date().toLocaleTimeString();
+            const phaseClass = 
+                phase === '捕获' ? 'capture-phase' :
+                phase === '目标' ? 'target-phase' : 'bubble-phase';
+
+            const logEntry = document.createElement('div');
+            logEntry.className = phaseClass;
+            logEntry.textContent = `${timestamp} - ${element} - ${phase}阶段`;
+            eventLog.insertBefore(logEntry, eventLog.firstChild);
+
+            // 高亮显示当前处理事件的元素
+            const targetElement = document.getElementById(element);
+            if (targetElement) {
+                targetElement.classList.add('highlight');
+                setTimeout(() => targetElement.classList.remove('highlight'), 500);
+            }
+        }
+
+        // 添加事件监听器的函数
+        function addEventListeners(element, elementName) {
+            // 捕获阶段
+            element.addEventListener('click', (event) => {
+                if (!useCaptureCheckbox.checked) return;
+                logEvent(elementName, '捕获', event);
+            }, true);
+
+            // 冒泡阶段
+            element.addEventListener('click', (event) => {
+                if (!useBubbleCheckbox.checked) return;
+                logEvent(elementName, '冒泡', event);
+            }, false);
+
+            // 目标阶段（只在实际目标上触发）
+            if (element === button) {
+                element.addEventListener('click', (event) => {
+                    logEvent(elementName, '目标', event);
+                });
+            }
+        }
+
+        // 为所有元素添加事件监听器
+        addEventListeners(grandparent, 'grandparent');
+        addEventListeners(parent, 'parent');
+        addEventListeners(child, 'child');
+        addEventListeners(button, 'button');
+
+        // 阻止事件传播的示例
+        document.getElementById('child').addEventListener('click', (event) => {
+            if (event.target === button) {
+                // 通过复选框状态决定是否阻止传播
+                if (!useBubbleCheckbox.checked) {
+                    event.stopPropagation();
+                    logEvent('child', '已阻止传播', event);
+                }
+            }
+        });
+
+        // 立即停止传播的示例
+        button.addEventListener('click', (event) => {
+            if (!useCaptureCheckbox.checked || !useBubbleCheckbox.checked) {
+                event.stopImmediatePropagation();
+                logEvent('button', '立即停止传播', event);
+            }
+        }, true);
+
+        // 添加/移除事件监听器的示例
+        let dynamicHandler = (event) => {
+            logEvent('button', '动态处理器', event);
+        };
+
+        button.addEventListener('click', dynamicHandler);
+
+        // 5秒后移除动态处理器
+        setTimeout(() => {
+            button.removeEventListener('click', dynamicHandler);
+            logEvent('button', '已移除动态处理器', null);
+        }, 5000);
+
+        // 事件委托示例
+        grandparent.addEventListener('click', (event) => {
+            if (event.target.tagName === 'BUTTON') {
+                logEvent('grandparent', '事件委托', event);
+            }
+        });
+
+        // 自定义事件示例
+        button.addEventListener('customEvent', (event) => {
+            logEvent('button', '自定义事件', event);
+        });
+
+        // 3秒后触发自定义事件
+        setTimeout(() => {
+            const customEvent = new CustomEvent('customEvent', {
+                detail: { message: '这是自定义事件' }
+            });
+            button.dispatchEvent(customEvent);
+        }, 3000);
+    </script>
+</body>
+</html>
