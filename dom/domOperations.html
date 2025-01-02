@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM API 操作示例</title>
+    <style>
+        .highlight {
+            background-color: yellow;
+        }
+        .hidden {
+            display: none;
+        }
+        .box {
+            width: 100px;
+            height: 100px;
+            background-color: blue;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h1>DOM API 操作示例</h1>
+    
+    <!-- 1. 元素选择和查找 -->
+    <div id="section1">
+        <h2>1. 元素选择和查找</h2>
+        <p class="paragraph">这是一个段落</p>
+        <p class="paragraph">这是另一个段落</p>
+        <button onclick="demonstrateSelectors()">演示选择器</button>
+    </div>
+
+    <!-- 2. 元素创建和操作 -->
+    <div id="section2">
+        <h2>2. 元素创建和操作</h2>
+        <div id="container"></div>
+        <button onclick="demonstrateCreation()">创建元素</button>
+    </div>
+
+    <!-- 3. 属性和样式操作 -->
+    <div id="section3">
+        <h2>3. 属性和样式操作</h2>
+        <div id="styleBox" class="box"></div>
+        <button onclick="demonstrateStyles()">修改样式</button>
+    </div>
+
+    <!-- 4. 事件处理 -->
+    <div id="section4">
+        <h2>4. 事件处理</h2>
+        <button id="eventButton">点击我</button>
+        <div id="eventLog"></div>
+    </div>
+
+    <!-- 5. DOM 遍历 -->
+    <div id="section5">
+        <h2>5. DOM 遍历</h2>
+        <ul id="parentList">
+            <li>项目 1</li>
+            <li>项目 2</li>
+            <li>项目 3</li>
+        </ul>
+        <button onclick="demonstrateTraversal()">遍历 DOM</button>
+    </div>
+
+    <script>
+        // 1. 元素选择和查找
+        function demonstrateSelectors() {
+            // 通过 ID 选择
+            const section1 = document.getElementById('section1');
+            console.log('通过 ID 选择:', section1);
+
+            // 通过类名选择
+            const paragraphs = document.getElementsByClassName('paragraph');
+            console.log('通过类名选择:', paragraphs);
+
+            // 通过标签名选择
+            const buttons = document.getElementsByTagName('button');
+            console.log('通过标签名选择:', buttons);
+
+            // 使用 querySelector
+            const firstParagraph = document.querySelector('.paragraph');
+            console.log('第一个段落:', firstParagraph);
+
+            // 使用 querySelectorAll
+            const allParagraphs = document.querySelectorAll('.paragraph');
+            console.log('所有段落:', allParagraphs);
+        }
+
+        // 2. 元素创建和操作
+        function demonstrateCreation() {
+            const container = document.getElementById('container');
+            
+            // 创建新元素
+            const newDiv = document.createElement('div');
+            newDiv.textContent = '这是动态创建的元素';
+            newDiv.className = 'highlight';
+            
+            // 添加到 DOM
+            container.appendChild(newDiv);
+            
+            // 创建文本节点
+            const textNode = document.createTextNode(' - 附加的文本');
+            newDiv.appendChild(textNode);
+            
+            // 移除元素（3秒后）
+            setTimeout(() => {
+                container.removeChild(newDiv);
+            }, 3000);
+        }
+
+        // 3. 属性和样式操作
+        function demonstrateStyles() {
+            const box = document.getElementById('styleBox');
+            
+            // 切换类
+            box.classList.toggle('highlight');
+            
+            // 直接修改样式
+            box.style.transform = box.style.transform === 'rotate(45deg)' 
+                ? 'rotate(0deg)' 
+                : 'rotate(45deg)';
+            
+            // 获取计算后的样式
+            const computedStyle = window.getComputedStyle(box);
+            console.log('盒子宽度:', computedStyle.width);
+        }
+
+        // 4. 事件处理
+        document.getElementById('eventButton').addEventListener('click', function(e) {
+            const log = document.getElementById('eventLog');
+            
+            // 创建新的日志条目
+            const entry = document.createElement('div');
+            entry.textContent = `点击事件 - 时间戳: ${new Date().toLocaleTimeString()}`;
+            
+            // 添加到日志
+            log.insertBefore(entry, log.firstChild);
+            
+            // 事件对象信息
+            console.log('事件类型:', e.type);
+            console.log('事件目标:', e.target);
+            console.log('事件坐标:', e.clientX, e.clientY);
+        });
+
+        // 5. DOM 遍历
+        function demonstrateTraversal() {
+            const list = document.getElementById('parentList');
+            
+            // 子节点遍历
+            console.log('子节点:', list.children);
+            
+            // 第一个和最后一个子节点
+            console.log('第一个子节点:', list.firstElementChild);
+            console.log('最后一个子节点:', list.lastElementChild);
+            
+            // 兄弟节点遍历
+            const secondItem = list.children[1];
+            console.log('前一个兄弟:', secondItem.previousElementSibling);
+            console.log('后一个兄弟:', secondItem.nextElementSibling);
+            
+            // 父节点
+            console.log('父节点:', secondItem.parentElement);
+        }
+
+        // 额外：DOM 变化监听
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                console.log('DOM 变化类型:', mutation.type);
+                console.log('变化目标:', mutation.target);
+            });
+        });
+
+        // 监听 container 的变化
+        observer.observe(document.getElementById('container'), {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+    </script>
+</body>
+</html>
